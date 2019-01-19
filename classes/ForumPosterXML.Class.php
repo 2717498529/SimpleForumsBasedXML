@@ -6,13 +6,18 @@
 require_once 'system.php';
 require_once 'ForumMisc.Class.php';
 class ForumPosterXML{
+    const POSTER_ID_LEN=13;
+    const POSTER_AREA_LEN=1;
+    const POSTER_DIR_LEN=6;
+    const POSTER_BASENAME_LEN=6;
+    const POSTER__LEN=6;
     public $domdoc;
     public $posterid;
     public $xmlfile;
     public $systeminfo;
     public function __construct($posterid=null){
         $this->domdoc=new DOMDocument;
-        $this->systeminfo=get_forum_config('ALL');
+        $this->systeminfo=ForumSystem::get_forum_config('ALL');
         if(isset($posterid)){
             /* POSTERID的第1位是所属分区编号，2~13位为帖子在分区中的编号。
              * 其中，为避免在单个文件夹中存储太多的文件，2~7位作为所属的文
@@ -30,13 +35,13 @@ class ForumPosterXML{
     public function getXMLPath($posterid,$format='full'){
         switch ($format){
             case 'home':
-                return get_forum_config('DATA_HOME').'/posters/'.substr($posterid,0,1);
+                return ForumSystem::get_forum_config('DATA_HOME').'/posters/'.substr($posterid,0,1);
             case 'dir':
-                return get_forum_config('DATA_HOME').'/posters/'.substr($posterid,0,1).'/'.substr($posterid,1,6);
+                return ForumSystem::get_forum_config('DATA_HOME').'/posters/'.substr($posterid,0,1).'/'.substr($posterid,1,6);
             case 'basename':
                 return floor(substr($posterid,7,6)/$this->systeminfo['POSTERS_PER_FILE']);
             case 'full':
-                return get_forum_config('DATA_HOME').'/posters/'.substr($posterid,0,1).'/'.substr($posterid,1,6).'/'.floor(substr($posterid,7,6)/$this->systeminfo['POSTERS_PER_FILE']).'.xml';
+                return ForumSystem::get_forum_config('DATA_HOME').'/posters/'.substr($posterid,0,1).'/'.substr($posterid,1,6).'/'.floor(substr($posterid,7,6)/$this->systeminfo['POSTERS_PER_FILE']).'.xml';
             default:
                 return false ;
         }
@@ -52,8 +57,8 @@ class ForumPosterXML{
         $posterid=&$this->posterid;
         $xmlfile=&$this->xmlfile;
         //得到ID并增加计数
-        $posterid=$area.str_pad(get_forum_posters_num($area),12,'0',STR_PAD_LEFT);
-        add_forum_poster_num($area);
+        $posterid=$area.str_pad(ForumSystem::get_forum_posters_num($area),12,'0',STR_PAD_LEFT);
+        ForumSystem::add_forum_poster_num($area);
         //得到文件名
         $xmlfile=$this->getXMLPath($posterid);
         //如果最近的文件容量已满，则创建新文件
