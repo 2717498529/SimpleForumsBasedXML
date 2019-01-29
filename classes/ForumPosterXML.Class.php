@@ -10,10 +10,8 @@ class ForumPosterXML{
     public $domdoc;
     public $posterid;
     public $xmlfile;
-    public $systeminfo;
     public function __construct($posterid=null){
         $this->domdoc=new DOMDocument;
-        $this->systeminfo=ForumSystem::get_forum_config('ALL');
         if(isset($posterid)){
             /* POSTERID的第1位是所属分区编号，2~13位为帖子在分区中的编号。
              * 其中，为避免在单个文件夹中存储太多的文件，2~7位作为所属的文
@@ -31,20 +29,20 @@ class ForumPosterXML{
     public function getXMLPath($posterid,$format=FORUM_GET_XML_PATH_FULL){
         switch ($format){
             case 0:
-                return ForumSystem::get_forum_config('DATA_HOME').'/posters/'.substr($posterid,POSTER_AREA_OFFSET,POSTER_AREA_LEN);
+                return FORUM_DATA_HOME.'/posters/'.substr($posterid,POSTER_AREA_OFFSET,POSTER_AREA_LEN);
             case 1:
-                return ForumSystem::get_forum_config('DATA_HOME').'/posters/'.substr($posterid,POSTER_AREA_OFFSET,POSTER_AREA_LEN).'/'.substr($posterid,POSTER_DIR_OFFSET,POSTER_DIR_LEN);
+                return FORUM_DATA_HOME.'/posters/'.substr($posterid,POSTER_AREA_OFFSET,POSTER_AREA_LEN).'/'.substr($posterid,POSTER_DIR_OFFSET,POSTER_DIR_LEN);
             case 2:
-                return floor(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)/$this->systeminfo['POSTERS_PER_FILE']);
+                return floor(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)/POSTERS_PER_FILE);
             case 3:
-                return ForumSystem::get_forum_config('DATA_HOME').'/posters/'.substr($posterid,POSTER_AREA_OFFSET,POSTER_AREA_LEN).'/'.substr($posterid,POSTER_DIR_OFFSET,POSTER_DIR_LEN).'/'.floor(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)/$this->systeminfo['POSTERS_PER_FILE']).'.xml';
+                return FORUM_DATA_HOME.'/posters/'.substr($posterid,POSTER_AREA_OFFSET,POSTER_AREA_LEN).'/'.substr($posterid,POSTER_DIR_OFFSET,POSTER_DIR_LEN).'/'.floor(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)/POSTERS_PER_FILE).'.xml';
             default:
                 return false ;
         }
     }
     public function getNumberInFile($posterid){
         //返回帖子在文件中的序号
-        return substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)-($this->getXMLPath($posterid,FORUM_GET_XML_PATH_BASENAME))*$this->systeminfo['POSTERS_PER_FILE'];
+        return substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)-($this->getXMLPath($posterid,FORUM_GET_XML_PATH_BASENAME))*POSTERS_PER_FILE;
     }
     public function addPoster($poster,$title,$area,$files=null){
         //创建帖子
@@ -58,7 +56,7 @@ class ForumPosterXML{
         //得到文件名
         $xmlfile=$this->getXMLPath($posterid);
         //如果最近的文件容量已满，则创建新文件
-        if(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)%$this->systeminfo['POSTERS_PER_FILE']==0){
+        if(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)%POSTERS_PER_FILE==0){
             $root=$dom->createElement('root');
             $dom->appendChild($root);
             //如果文件夹不存在，则创建
@@ -82,11 +80,10 @@ class ForumPosterXML{
         $thread=$dom->createElement('t');
         //设置帖子属性
         $thread->setAttribute('t',time());//时间
-        $thread->setAttribute('a',$_SESSION['UID']);//作者
+        $thread->setAttribute('a',$_SESSION['uid']);//作者
         $thread->setAttribute('h',$title);//标题
         //设置帖子内容
         $thread->nodeValue=$poster;
-        //echo 0;
         //创建和管理文件并上传文件
         if($files!==null){
             $post=$this->addFiles($files,1,$post);
@@ -94,7 +91,6 @@ class ForumPosterXML{
         //关联各个节点
         $post->appendChild($thread);
         $root->appendChild($post);
-        //echo 0;
         //保存
         $dom->save($xmlfile);
         return true;
@@ -107,7 +103,7 @@ class ForumPosterXML{
         $i=getNumberInFile($posterid);
         //使用xpath搜索
         $xpath=new DOMXpath($this->domdoc);
-        $threadElement=$xpath->query("root/p[@i='".$i."']/t")->item(0);
+        $threadElement=$xpath->query("/root/p[@i='".$i."']/t")->item(0);
         //保存并返回结果
         $thread['body']=$threadElement->nodeValue;
         $thread['title']=$threadElement->getAttribute('h');
@@ -123,9 +119,9 @@ class ForumPosterXML{
         $i=$this->getNumberInFile($this->posterid);
         //使用xpath搜索帖子
         $xpath=new DOMXpath($this->domdoc);
-        $post=$xpath->query("root/p[@i='".$i."']")->item(0);
+        $post=$xpath->query("/root/p[@i='".$i."']")->item(0);
         //获取回帖序号
-        $repid=$xpath->query("root/p[@i='".$i."']/r")->length;
+        $repid=$xpath->query("/root/p[@i='".$i."']/r")->length;
         unset($xpath);
         //建立节点设置属性
         $reply=$dom->createElement('r');
@@ -149,7 +145,7 @@ class ForumPosterXML{
         $xpath=new DOMXpath($this->domdoc);
         if($i==all){
             //获取回帖NodeList
-            $replies=$xpath->query("root/p[@i='".$i."']/r");
+            $replies=$xpath->query("/root/p[@i='".$i."']/r");
             //遍历并输出
             for($replyi=0;$replyi<=$replies->lenght;$replyi++){
                 $reply=$replies->item($replyi);
@@ -161,10 +157,10 @@ class ForumPosterXML{
             return $replies_to_ret;
         }else{
             //获取回帖
-            $reply=$xpath->query("root/p[@i='".$i."']/r")->item($replyi);
+            $reply=$xpath->query("/root/p[@i='".$i."']/r")->item($replyi);
             //写入数组并输出
             $reply_to_ret['author']=$reply->getAttribute('a');
-            $reply_to_ret['time']=$reply->getAttribute('a');
+            $reply_to_ret['time']=$reply->getAttribute('t');
             $reply_to_ret['body']=$reply->nodeValue;
             return $reply_to_ret;
         }
@@ -174,14 +170,11 @@ class ForumPosterXML{
 
         $xpath=new DOMXpath($this->domdoc);
         $i=$this->getNumberInFile($this->posterid);
-        $i=$xpath->query("root/p[@i='".$i."']/r")->length;
         unset($xpath);
         foreach($files as $file){
             //上传
             $fileid=ForumMisc::upFile($file['tmp_name']);
             //成功则创建并关联节点
-            //echo $fileid;
-            //echo 0;
             $fileElement=$this->domdoc->createElement('f');
             $fileElement->setAttribute('n',$file['name']);//文件名
             $fileElement->setAttribute('f',$floor);//楼层
@@ -190,6 +183,19 @@ class ForumPosterXML{
             $i++;
         }
     return $post;
+    }
+    public static function posterExists($posterid){
+        $path=FORUM_DATA_HOME.'/posters/'.substr($posterid,POSTER_AREA_OFFSET,POSTER_AREA_LEN).'/'.substr($posterid,POSTER_DIR_OFFSET,POSTER_DIR_LEN).'/'.floor(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)/POSTERS_PER_FILE).'.xml';
+        if(file_exists($path)){
+            $dom=new DOMDocument;
+            $dom->load($path);
+            $xpath=new DOMXpath($dom);
+            $i=substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)-(floor(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)/POSTERS_PER_FILE))*POSTERS_PER_FILE;
+            if($xpath->query("/root/p[@i='".$i."']")->length!=0){
+                return true;
+            }
+        }
+        return false;
     }
 }
 

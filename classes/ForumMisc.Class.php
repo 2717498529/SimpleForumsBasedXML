@@ -14,12 +14,12 @@ class ForumMisc{
         if(is_uploaded_file($tmp_name)){
             //echo 0;
             //得到移动目标位置
-            $moveto=ForumSystem::get_forum_config('DATA_HOME').'/files/'.substr($fileid,POSTER_FILE_FIRST_DIR_OFFSET,POSTER_FILE_FIRST_DIR_LEN).'/'.substr($fileid,POSTER_FILE_SECOND_DIR_OFFSET,POSTER_FILE_SECOND_DIR_LEN).'/'.substr($fileid,POSTER_FILE_BASENAME_OFFSET,POSTER_FILE_BASENAME_LEN).'.bin';
+            $moveto=FORUM_DATA_HOME.'/files/'.substr($fileid,POSTER_FILE_FIRST_DIR_OFFSET,POSTER_FILE_FIRST_DIR_LEN).'/'.substr($fileid,POSTER_FILE_SECOND_DIR_OFFSET,POSTER_FILE_SECOND_DIR_LEN).'/'.substr($fileid,POSTER_FILE_BASENAME_OFFSET,POSTER_FILE_BASENAME_LEN).'.bin';
             //没有文件夹则创建
-            if(!file_exists(ForumSystem::get_forum_config('DATA_HOME').'/files/'.substr($fileid,POSTER_FILE_FIRST_DIR_OFFSET,POSTER_FILE_FIRST_DIR_LEN))){
-                mkdir(ForumSystem::get_forum_config('DATA_HOME').'/files/'.substr($fileid,POSTER_FILE_FIRST_DIR_OFFSET,POSTER_FILE_FIRST_DIR_LEN));
-                if(!file_exists(ForumSystem::get_forum_config('DATA_HOME').'/files/'.substr($fileid,POSTER_FILE_FIRST_DIR_OFFSET,POSTER_FILE_FIRST_DIR_LEN).'/'.substr($fileid,POSTER_FILE_SECOND_DIR_OFFSET,POSTER_FILE_SECOND_DIR_LEN))){
-                    mkdir(ForumSystem::get_forum_config('DATA_HOME').'/files/'.substr($fileid,POSTER_FILE_FIRST_DIR_OFFSET,POSTER_FILE_FIRST_DIR_LEN).'/'.substr($fileid,POSTER_FILE_SECOND_DIR_OFFSET,POSTER_FILE_SECOND_DIR_LEN));
+            if(!file_exists(FORUM_DATA_HOME.'/files/'.substr($fileid,POSTER_FILE_FIRST_DIR_OFFSET,POSTER_FILE_FIRST_DIR_LEN))){
+                mkdir(FORUM_DATA_HOME.'/files/'.substr($fileid,POSTER_FILE_FIRST_DIR_OFFSET,POSTER_FILE_FIRST_DIR_LEN));
+                if(!file_exists(FORUM_DATA_HOME.'/files/'.substr($fileid,POSTER_FILE_FIRST_DIR_OFFSET,POSTER_FILE_FIRST_DIR_LEN).'/'.substr($fileid,POSTER_FILE_SECOND_DIR_OFFSET,POSTER_FILE_SECOND_DIR_LEN))){
+                    mkdir(FORUM_DATA_HOME.'/files/'.substr($fileid,POSTER_FILE_FIRST_DIR_OFFSET,POSTER_FILE_FIRST_DIR_LEN).'/'.substr($fileid,POSTER_FILE_SECOND_DIR_OFFSET,POSTER_FILE_SECOND_DIR_LEN));
                 }
             }
             //移动文件

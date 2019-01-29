@@ -28,4 +28,7 @@ const FORUM_GET_XML_PATH_HOME=0;
 const FORUM_GET_XML_PATH_DIR=1;
 const FORUM_GET_XML_PATH_BASENAME=2;
 const FORUM_GET_XML_PATH_FULL=3;
+const POSTERS_PER_FILE=10;
+const USERS_PER_FILE=100;
+const FORUM_DATA_HOME='C:\Program Files (x86)\Apache Software Foundation\Apache2.2\htdocs\forums\data';
 ?>

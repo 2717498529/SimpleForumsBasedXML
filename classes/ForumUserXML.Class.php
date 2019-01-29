@@ -9,29 +9,27 @@ class ForumUserXML{
     public $domdoc;
     public $userid;
     public $xmlfile;
-    public $systeminfo;
     public function getXMLPath($userid,$format=FORUM_GET_XML_PATH_FULL){
         switch ($format){
             case 0:
-                return ForumSystem::get_forum_config('DATA_HOME').'/users/';
+                return FORUM_DATA_HOME.'/users/';
             case 1:
-                return ForumSystem::get_forum_config('DATA_HOME').'/users/'.substr($userid,USER_DIR_OFFSET,USER_DIR_LEN);
+                return FORUM_DATA_HOME.'/users/'.substr($userid,USER_DIR_OFFSET,USER_DIR_LEN);
             case 2:
-                return floor(substr($userid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)/$this->systeminfo['USERS_PER_FILE']);
+                return floor(substr($userid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)/USERS_PER_FILE);
             case 3:
-                return ForumSystem::get_forum_config('DATA_HOME').'/users/'.substr($userid,USER_DIR_OFFSET,USER_DIR_LEN).'/'.floor(substr($userid,USER_BASENAME_OFFSET,USER_BASENAME_LEN)/$this->systeminfo['USERS_PER_FILE']).'.xml';
+                return FORUM_DATA_HOME.'/users/'.substr($userid,USER_DIR_OFFSET,USER_DIR_LEN).'/'.floor(substr($userid,USER_BASENAME_OFFSET,USER_BASENAME_LEN)/USERS_PER_FILE).'.xml';
             default:
                 return false ;
         }
     }
     public function getNumberInFile($userid){
         //返回在文件中的序号
-        return substr($userid,USER_BASENAME_OFFSET,USER_BASENAME_LEN)-floor(substr($userid,USER_BASENAME_OFFSET,USER_BASENAME_LEN)/$this->systeminfo['USERS_PER_FILE'])*$this->systeminfo['USERS_PER_FILE'];
+        return substr($userid,USER_BASENAME_OFFSET,USER_BASENAME_LEN)-floor(substr($userid,USER_BASENAME_OFFSET,USER_BASENAME_LEN)/USERS_PER_FILE)*USERS_PER_FILE;
         
     }
     public function __construct(){
         $this->domdoc=new DOMDocument;
-        $this->systeminfo=ForumSystem::get_forum_config('ALL');
     }
     public function addUser($name,$pwd,$mail){
         $dom=&$this->domdoc;
@@ -40,7 +38,7 @@ class ForumUserXML{
         $userid=str_pad(ForumSystem::get_forum_users_num(),USER_ID_LEN,'0',STR_PAD_LEFT);
         ForumSystem::add_forum_users_num();
         $xmlfile=$this->getXMLPath($userid);
-        if(substr($userid,USER_BASENAME_OFFSET,USER_BASENAME_LEN)%$this->systeminfo['USERS_PER_FILE']==0){
+        if(substr($userid,USER_BASENAME_OFFSET,USER_BASENAME_LEN)%USERS_PER_FILE==0){
             $root=$dom->createElement('root');
             $dom->appendChild($root);
             //如果文件夹不存在，则创建
@@ -72,10 +70,13 @@ class ForumUserXML{
         $i=$this->getNumberInFile($uid);
         $dom->load($xmlfile);
         $xpath=new DOMXpath($dom);
-        $user=$xpath->query("root/p[@i='".$i."']/r")->item(0);
-        //var_dump($user);
+        $user=$xpath->query("/root/u[@i='".$i."']")->item(0);
         //写入数组并输出
-        $pwd_in_file=$user->getAttribute('p');
+        if(is_object($user)){
+            $pwd_in_file=$user->getAttribute('p');
+        }else{
+            return false;
+        }
         if(md5($pwd)==$pwd_in_file){
             session_start();
             $_SESSION['uid']=$uid;
