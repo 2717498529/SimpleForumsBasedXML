@@ -33,7 +33,6 @@ class ForumUserXML{
     }
     public function addUser($name,$pwd,$mail){
         $dom=&$this->domdoc;
-        $posterid=&$this->userid;
         $xmlfile=&$this->xmlfile;
         $userid=str_pad(ForumSystem::get_forum_users_num(),USER_ID_LEN,'0',STR_PAD_LEFT);
         ForumSystem::add_forum_users_num();
@@ -61,6 +60,27 @@ class ForumUserXML{
         $user->setAttribute('m',$mail);
         $root->appendChild($user);
         $dom->save($xmlfile);
+        $this->userid=$userid;
+        return $userid;
+    }
+    public function getUser($uid){
+        $dom=&$this->domdoc;
+        $uid=str_pad($uid,USER_ID_LEN,'0',STR_PAD_LEFT);
+        $this->userid=$uid;
+        $xmlfile=&$this->xmlfile;
+        $xmlfile=$this->getXMLPath($uid);
+        $i=$this->getNumberInFile($uid);
+        $dom->load($xmlfile);
+        $xpath=new DOMXpath($dom);
+        $user=$xpath->query("/root/u[@i='".$i."']")->item(0);
+        //写入数组并输出
+        if(is_object($user)){
+            $user_to_ret['name']=$user->getAttribute('n');
+            $user_to_ret['mail']=$user->getAttribute('m');
+            return $user_to_ret;
+        }else{
+            return false;
+        }
     }
     public function login($uid,$pwd){
         $dom=&$this->domdoc;

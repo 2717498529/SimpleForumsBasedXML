@@ -23,6 +23,7 @@ class ForumPosterXML{
         
     }
     public function load($posterid){
+        $this->posterid=$posterid;
         $this->xmlfile=$this->getXMLPath($posterid);
         $this->domdoc->load($this->xmlfile);
     }
@@ -100,7 +101,7 @@ class ForumPosterXML{
         //初始化引用
         $dom=&$this->domdoc;
         //得到帖子序号
-        $i=getNumberInFile($posterid);
+        $i=$this->getNumberInFile($this->posterid);
         //使用xpath搜索
         $xpath=new DOMXpath($this->domdoc);
         $threadElement=$xpath->query("/root/p[@i='".$i."']/t")->item(0);
@@ -124,35 +125,37 @@ class ForumPosterXML{
         $repid=$xpath->query("/root/p[@i='".$i."']/r")->length;
         unset($xpath);
         //建立节点设置属性
-        $reply=$dom->createElement('r');
-        $reply->setAttribute('t',time());//时间
-        $reply->setAttribute('a',$_SESSION['UID']);//作者
-        $reply->setAttribute('i',$repid);//序号
+        $reply_element=$dom->createElement('r');
+        $reply_element->setAttribute('t',time());//时间
+        $reply_element->setAttribute('a',$_SESSION['uid']);//作者
+        $reply_element->setAttribute('i',$repid);//序号
         //设置内容
-        $reply->nodeValue=$reply;
+        $reply_element->nodeValue=$reply;
         //关联节点并保存
-        $post->appendChild($reply);
-        return;
+        $post->appendChild($reply_element);
+        $dom->save($this->xmlfile);
+        return true;
         
     }
     public function getReply($replyi='all'){
         //获取回帖
-        //初始化引用
+        //初始化变量和引用
         $dom=&$this->domdoc;
+        $replies_to_ret=array();
         //得到帖子序号
         $i=$this->getNumberInFile($this->posterid);
         //创建Xpath对象
         $xpath=new DOMXpath($this->domdoc);
-        if($i==all){
+        if($replyi=='all'){
             //获取回帖NodeList
             $replies=$xpath->query("/root/p[@i='".$i."']/r");
             //遍历并输出
-            for($replyi=0;$replyi<=$replies->lenght;$replyi++){
+            for($replyi=0;$replyi<$replies->length;$replyi++){
                 $reply=$replies->item($replyi);
-                $reply_to_ret['author']=$reply->getAttribute('a');
-                $reply_to_ret['time']=$reply->getAttribute('a');
-                $reply_to_ret['body']=$reply->nodeValue;
-                $replies_to_ret[$reply->getAttribute('i')]=$reply_to_ret;
+                $replies_to_ret[$replyi]['author']=$reply->getAttribute('a');
+                $replies_to_ret[$replyi]['time']=$reply->getAttribute('t');
+                $replies_to_ret[$replyi]['body']=$reply->nodeValue;
+                //$replies_to_ret[$reply->getAttribute('i')]=$reply_to_ret;
             }
             return $replies_to_ret;
         }else{
@@ -164,7 +167,6 @@ class ForumPosterXML{
             $reply_to_ret['body']=$reply->nodeValue;
             return $reply_to_ret;
         }
-        unset($xpath);
     }
     public function addFiles($files,$floor,$post){
 
