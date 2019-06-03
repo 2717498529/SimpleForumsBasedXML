@@ -30,6 +30,6 @@ const FORUM_GET_XML_PATH_BASENAME=2;
 const FORUM_GET_XML_PATH_FULL=3;
 const POSTERS_PER_FILE=10;
 const USERS_PER_FILE=100;
-const FORUM_DATA_HOME='/sdcard/htdocs/forums/data';
+const FORUM_DATA_HOME='C:\Program Files\Apache Software Foundation\Apache2.2\htdocs\SimpleForumsBasedXML\data';
 const FORUM_NEWEST_POSTERS_NUM=10;
 ?>

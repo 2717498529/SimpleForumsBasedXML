@@ -19,6 +19,8 @@ $list=new ForumList;
     <?php 
     if(!isset($_SESSION['uid'])){
         echo "<td width='307'><a href='login.html'>登录</a></td><td width='156'><a href='register.html'>注册</a></td>";
+    }else{
+        echo "<td width='307'><a href='post.html'>发帖</a></td>";
     }
     ?>
   </tr>
@@ -32,11 +34,13 @@ $list=new ForumList;
   </tr>
   <?php 
   $posters=$list->getNewestPosters(0);
-  foreach($posters as $posterid){
-      $post->load($posterid);
-      $thread=$post->getThread();
-      echo "<tr><td><a href='getPoster.php?i=".$posterid."'>".$thread['title'].'</a></td><td>'.date('Y.m.d H:i:s',$thread['time']).'</td></tr>';
+  if($list!==false){
+    foreach($posters as $posterid){
+        $post->load($posterid);
+        $thread=$post->getThread();
+        echo "<tr><td><a href='getPoster.php?i=".$posterid."'>".$thread['title'].'</a></td><td>'.date('Y.m.d H:i:s',$thread['time']).'</td></tr>';
     }
+  }
    ?>
 </table>
 </body>

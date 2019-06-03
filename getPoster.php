@@ -23,12 +23,22 @@ $reply=$post->getReply();
             <?php
             $author=$user->getUser($thread['author']);
             echo "<tr><td width='15%'>1楼</br>".$author['name']."</br>".date('Y.m.d H:i:s',$thread['time'])."</br></td><td width='85%'>".$thread['body']."</br>";
+            $files=$post->getFiles('1');
+            foreach($files as $file){
+                echo "<a href='down.php?i=".$file['id']."'>".$file['name']."</td>";
+            }
             //echo "<a href='down.pgp?i=$i'>$filename</a> $sz</br></td>";
             echo "</tr>";
             foreach($reply as $i=>$reply){
                 $floor=$i+2;
                 $author=$user->getUser($reply['author']);
                 echo "<tr><td width='15%'>".$floor."楼</br>".$author['name']."</br>".date('Y.m.d H:i:s',$reply['time'])."</br></td><td width='85%'>".$reply['body']."</br>";
+                $files=$post->getFiles($floor);
+                if($files!==false){
+                    foreach($files as $file){
+                        echo "<a href='down.php?i=".$file['id']."'>".$file['name']."</td>";
+                    }
+                }
                 //echo "<a href='down.pgp?i=$i'>$filename</a> $sz</br></td>";
                 echo "</tr>";
             }

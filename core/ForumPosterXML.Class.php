@@ -133,6 +133,9 @@ class ForumPosterXML{
         $reply_element->nodeValue=$reply;
         //关联节点并保存
         $post->appendChild($reply_element);
+        if($files!==null){
+            $post=$this->addFiles($files,$repid+2,$post);
+        }
         $dom->save($this->xmlfile);
         return true;
         
@@ -168,11 +171,22 @@ class ForumPosterXML{
             return $reply_to_ret;
         }
     }
-    public function addFiles($files,$floor,$post){
-
+    public function getFiles($floor){
         $xpath=new DOMXpath($this->domdoc);
         $i=$this->getNumberInFile($this->posterid);
-        unset($xpath);
+        $files=$xpath->query("/root/p[@i='".$i."']/f[@f='".$floor."']");
+        if($files->length==0){
+            return false;
+        }
+        for($i=1;$i<=$files->length;$i++){
+            $file=$files->item($i-1);
+            $flies_to_array[$i]['id']=str_pad($file->getAttribute('i'),POSTER_FILE_ID_LEN,'0',STR_PAD_LEFT);
+            $flies_to_array[$i]['name']=$file->getAttribute('n');
+        }
+        return $flies_to_array;
+    }
+    public function addFiles($files,$floor,$post){
+        $i=$this->getNumberInFile($this->posterid);
         foreach($files as $file){
             //上传
             $fileid=ForumMisc::upFile($file['tmp_name']);

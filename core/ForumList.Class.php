@@ -14,6 +14,9 @@ class ForumList{
         $posternum=ForumSystem::get_forum_posters_num($area);
         $i=0;
         $checked=0;
+        if($posternum==0){
+            return array();
+        }
         while($i<=$num){
             $posterid=$area.str_pad($posternum-$checked,12,'0',STR_PAD_LEFT);
             if(ForumPosterXML::posterExists($posterid)){
@@ -25,7 +28,7 @@ class ForumList{
         return $this->list;
     }
     public function searchPosterByTitle($key,$from){
-        
+        //nothing
     }
 }
 ?>
