@@ -8,20 +8,21 @@ class ForumSystem{
         //获取帖子数目
         $fp=fopen(FORUM_DATA_HOME.'/stat.txt','r');
         fseek($fp,POSTER_NUM_LEN*($area)+POSTER_NUM_OFFSET);
-        $num=fread($fp,POSTER_NUM_LEN);
+        echo POSTER_NUM_LEN*($area)+POSTER_NUM_OFFSET;
+        $num=hexdec(fread($fp,POSTER_NUM_LEN));
         fclose($fp);
-        return $area.ltrim($num,'0');
+        return dechex(ltrim($num,'0'));
     }
     public static function add_forum_poster_num($area){
         $fp=fopen(FORUM_DATA_HOME.'/stat.txt','r+');
         fseek($fp,POSTER_NUM_LEN*($area)+POSTER_NUM_OFFSET);
-        $num=fread($fp,POSTER_NUM_LEN);
+        $num=hexdec(fread($fp,POSTER_NUM_LEN));
         //echo $num.'/';
         $num=ltrim($num,'0');
         //echo $num.'/';
         $num++;
         //echo $num.'/';
-        $num=str_pad($num,POSTER_NUM_LEN,'0',STR_PAD_LEFT);
+        $num=str_pad(dechex($num),POSTER_NUM_LEN,'0',STR_PAD_LEFT);
         fseek($fp,POSTER_NUM_LEN*($area)+POSTER_NUM_OFFSET);
         //echo $num.'/';
         fwrite($fp,$num);

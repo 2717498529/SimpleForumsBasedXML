@@ -25,7 +25,11 @@ class ForumPosterXML{
     public function load($posterid){
         $this->posterid=$posterid;
         $this->xmlfile=$this->getXMLPath($posterid);
-        $this->domdoc->load($this->xmlfile);
+        if(file_exists($this->xmlfile)){
+            $this->domdoc->load($this->xmlfile);
+        }else{
+            return false;
+        }
     }
     public function getXMLPath($posterid,$format=FORUM_GET_XML_PATH_FULL){
         switch ($format){
@@ -34,16 +38,18 @@ class ForumPosterXML{
             case 1:
                 return FORUM_DATA_HOME.'/posters/'.substr($posterid,POSTER_AREA_OFFSET,POSTER_AREA_LEN).'/'.substr($posterid,POSTER_DIR_OFFSET,POSTER_DIR_LEN);
             case 2:
-                return floor(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)/POSTERS_PER_FILE);
+                return dechex(floor(hexdec(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN))/POSTERS_PER_FILE));
             case 3:
-                return FORUM_DATA_HOME.'/posters/'.substr($posterid,POSTER_AREA_OFFSET,POSTER_AREA_LEN).'/'.substr($posterid,POSTER_DIR_OFFSET,POSTER_DIR_LEN).'/'.floor(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)/POSTERS_PER_FILE).'.xml';
+                //echo '-'.hexdec(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)).'-';
+                return FORUM_DATA_HOME.'/posters/'.substr($posterid,POSTER_AREA_OFFSET,POSTER_AREA_LEN).'/'.substr($posterid,POSTER_DIR_OFFSET,POSTER_DIR_LEN).'/'.dechex(floor(hexdec(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN))/POSTERS_PER_FILE)).'.xml';
+                //echo substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN);
             default:
                 return false ;
         }
     }
     public function getNumberInFile($posterid){
         //返回帖子在文件中的序号
-        return substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)-($this->getXMLPath($posterid,FORUM_GET_XML_PATH_BASENAME))*POSTERS_PER_FILE;
+        return hexdec(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN))-hexdec(($this->getXMLPath($posterid,FORUM_GET_XML_PATH_BASENAME)))*POSTERS_PER_FILE;
     }
     public function addPoster($poster,$title,$area,$files=null){
         //创建帖子
@@ -53,13 +59,16 @@ class ForumPosterXML{
         $xmlfile=&$this->xmlfile;
         //得到ID并增加计数
         $posterid=$area.str_pad(ForumSystem::get_forum_posters_num($area),POSTER_NUM_LEN,'0',STR_PAD_LEFT);
+        echo $posterid.'/';
+        //$posterid=$area.printf("%0".ceil(log(ForumSystem::get_forum_poster_num($area)."x",ForumSystem::get_forum_poster_num)));
         ForumSystem::add_forum_poster_num($area);
         //得到文件名
         $xmlfile=$this->getXMLPath($posterid);
         //如果最近的文件容量已满，则创建新文件
-        if(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)%POSTERS_PER_FILE==0){
+        if(hexdec(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN))%POSTERS_PER_FILE==0){
             $root=$dom->createElement('root');
             $dom->appendChild($root);
+            //如果文件夹不存在，则创建
             //如果文件夹不存在，则创建
             if(!file_exists($this->getXMLPath($posterid,FORUM_GET_XML_PATH_DIR))){
                 if(!mkdir($this->getXMLPath($posterid,FORUM_GET_XML_PATH_DIR))){
@@ -94,6 +103,7 @@ class ForumPosterXML{
         $root->appendChild($post);
         //保存
         $dom->save($xmlfile);
+        echo $xmlfile;
         return true;
     }
     public function getThread(){
@@ -105,6 +115,9 @@ class ForumPosterXML{
         //使用xpath搜索
         $xpath=new DOMXpath($this->domdoc);
         $threadElement=$xpath->query("/root/p[@i='".$i."']/t")->item(0);
+        if($threadElement===null){
+            return false;
+        }
         //保存并返回结果
         $thread['body']=$threadElement->nodeValue;
         $thread['title']=$threadElement->getAttribute('h');
@@ -201,17 +214,17 @@ class ForumPosterXML{
     return $post;
     }
     public static function posterExists($posterid){
-        $path=FORUM_DATA_HOME.'/posters/'.substr($posterid,POSTER_AREA_OFFSET,POSTER_AREA_LEN).'/'.substr($posterid,POSTER_DIR_OFFSET,POSTER_DIR_LEN).'/'.floor(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)/POSTERS_PER_FILE).'.xml';
+        $path=FORUM_DATA_HOME.'/posters/'.substr($posterid,POSTER_AREA_OFFSET,POSTER_AREA_LEN).'/'.substr($posterid,POSTER_DIR_OFFSET,POSTER_DIR_LEN).'/'.dechex(floor(hexdec(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN))/POSTERS_PER_FILE)).'.xml';
         if(file_exists($path)){
             $dom=new DOMDocument;
             $dom->load($path);
             $xpath=new DOMXpath($dom);
-            $i=substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)-(floor(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)/POSTERS_PER_FILE))*POSTERS_PER_FILE;
+            $i=hexdec(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN))-(floor(hexdec(substr($posterid,POSTER_BASENAME_OFFSET,POSTER_BASENAME_LEN)/POSTERS_PER_FILE)))*POSTERS_PER_FILE;
             if($xpath->query("/root/p[@i='".$i."']")->length!=0){
                 return true;
             }
         }
-        return false;
+        return true; //false
     }
 }
 

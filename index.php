@@ -34,6 +34,7 @@ $list=new ForumList;
   </tr>
   <?php 
   $posters=$list->getNewestPosters(0);
+  //print_r($posters);
   if($list!==false){
     foreach($posters as $posterid){
         $post->load($posterid);
